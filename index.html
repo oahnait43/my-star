@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>你来过，这里就有光</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body onload="initStars()">
+
+  <div id="stars"></div>
+
+<script>
+async function initStars() {
+  try {
+    // 先 POST 生成新星星
+    const res = await fetch('/api/stars', { method: 'POST' });
+    const newStar = await res.json();
+    
+    // 立即渲染新星星（从中心动画）
+    addStar(newStar, true);
+    
+    // 再 GET 所有星星渲染旧的
+    const allRes = await fetch('/api/stars');
+    const stars = await allRes.json();
+    stars.forEach(s => addStar(s, false));  // false: 无动画，直接固定
+  } catch(e) {}
+}
+
+function addStar(star, animate = false) {
+  const div = document.createElement('div');
+  div.className = 'star' + (animate ? ' animate' : '');
+  div.style.left = getRandomPos('left');
+  div.style.top = getRandomPos('top');
+  div.style.fontSize = (0.8 + Math.random() * 1.2) + 'rem';  // 随机大小
+  
+  div.innerHTML = `
+    <span class="star-symbol">✦</span>
+    <span class="info">${star.time}<br>${star.location}</span>
+  `;
+  
+  document.getElementById('stars').appendChild(div);
+}
+
+function getRandomPos(axis) {
+  const max = axis === 'left' ? 98 : 88;  // vw/vh 边界
+  let pos = Math.random() * max;
+  // 简单避免重叠：如果有 >50 星星，微调（实际可优化为碰撞检测）
+  if (document.querySelectorAll('.star').length > 50) pos += Math.random() * 10 - 5;
+  return pos + (axis === 'left' ? 'vw' : 'vh');
+}
+</script>
+</body>
+</html>
