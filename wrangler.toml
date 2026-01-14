@@ -1,0 +1,13 @@
+name = "my-romantic-stars"
+compatibility_date = "2026-01-14"
+main = "src/index.js"  # 可以是空文件或省略
+
+[assets]
+directory = "./"  # 根目录所有文件作为静态资产
+not_found_handling = "single-page-application"  # SPA 模式，未匹配路径回 index.html
+
+[[kv_namespaces]]
+binding = "STARS_KV"
+id = "8d7290444dc54215b4f89ea6f2ae9a5c"  # 从 dashboard KV 页面复制
+
+# 或在 dashboard 绑定 KV
