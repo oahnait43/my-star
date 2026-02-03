@@ -351,6 +351,72 @@ body {
   box-shadow: 0 0 0 2px rgba(138, 100, 200, 0.5), 0 0 15px currentColor;
 }
 
+/* 昵称选项 */
+.nickname-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.nickname-option {
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(138, 100, 200, 0.3);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s var(--bounce-ease);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.nickname-option:hover {
+  transform: scale(1.05);
+  border-color: rgba(138, 100, 200, 0.6);
+  background: rgba(138, 100, 200, 0.2);
+}
+
+.nickname-option.selected {
+  background: rgba(138, 100, 200, 0.4);
+  border-color: rgba(138, 100, 200, 0.8);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(138, 100, 200, 0.3);
+}
+
+/* 留言选项 */
+.message-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+}
+
+.message-option {
+  padding: 0.7rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(138, 100, 200, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s var(--bounce-ease);
+  font-size: 0.9rem;
+  color: rgba(230, 210, 255, 0.9);
+  text-align: center;
+}
+
+.message-option:hover {
+  border-color: rgba(138, 100, 200, 0.5);
+  background: rgba(138, 100, 200, 0.15);
+  transform: translateX(4px);
+}
+
+.message-option.selected {
+  background: rgba(138, 100, 200, 0.3);
+  border-color: rgba(138, 100, 200, 0.8);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(138, 100, 200, 0.2);
+}
+
 /* 符号选项 */
 .symbol-options {
   display: flex;

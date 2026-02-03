@@ -17,8 +17,15 @@
       <p>在这片星空留下属于你的光芒</p>
       
       <div class="customize-section">
-        <label>你的昵称（可选）</label>
-        <input type="text" id="nickname-input" placeholder="匿名旅人" maxlength="10">
+        <label>选择你的身份</label>
+        <div class="nickname-options">
+          <div class="nickname-option selected" data-nickname="匿名旅人">匿名旅人</div>
+          <div class="nickname-option" data-nickname="星空行者">星空行者</div>
+          <div class="nickname-option" data-nickname="追梦人">追梦人</div>
+          <div class="nickname-option" data-nickname="夜行者">夜行者</div>
+          <div class="nickname-option" data-nickname="自由灵魂">自由灵魂</div>
+          <div class="nickname-option" data-nickname="时光旅者">时光旅者</div>
+        </div>
       </div>
       
       <div class="customize-section">
@@ -54,7 +61,17 @@
       <h3>🌟 星星留言</h3>
       <div id="star-info" class="star-info"></div>
       <div id="message-display" class="message-display"></div>
-      <textarea id="message-input" placeholder="写下你的留言（限100字）..." maxlength="100"></textarea>
+      <label style="display:block;margin:1rem 0 0.5rem;font-size:0.75rem;color:rgba(180,160,220,0.9);text-transform:uppercase;letter-spacing:0.08em;">选择一句留言</label>
+      <div class="message-options">
+        <div class="message-option" data-message="我来过这片星空">我来过这片星空</div>
+        <div class="message-option" data-message="愿星光指引你">愿星光指引你</div>
+        <div class="message-option" data-message="此刻，我们同在">此刻，我们同在</div>
+        <div class="message-option" data-message="留下一点光">留下一点光</div>
+        <div class="message-option" data-message="你好，陌生人">你好，陌生人</div>
+        <div class="message-option" data-message="晚安，好梦">晚安，好梦</div>
+        <div class="message-option" data-message="星光不问赶路人">星光不问赶路人</div>
+        <div class="message-option" data-message="愿你所愿皆成真">愿你所愿皆成真</div>
+      </div>
       <button id="submit-message-btn" class="btn-primary">留下留言</button>
     </div>
   </div>
@@ -136,10 +153,19 @@ function showWelcomeModal() {
     });
   });
   
+  // 昵称选择
+  document.querySelectorAll('.nickname-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      document.querySelectorAll('.nickname-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      userSettings.nickname = opt.dataset.nickname;
+    });
+  });
+  
   // 开始按钮
   document.getElementById('start-btn').addEventListener('click', () => {
-    const nickname = document.getElementById('nickname-input').value.trim();
-    userSettings.nickname = nickname || '匿名旅人';
+    const selectedNickname = document.querySelector('.nickname-option.selected');
+    userSettings.nickname = selectedNickname ? selectedNickname.dataset.nickname : '匿名旅人';
     
     localStorage.setItem('mystar_visited', 'true');
     localStorage.setItem('mystar_settings', JSON.stringify(userSettings));
@@ -288,11 +314,21 @@ function closeMessageModal() {
   }, 400);
 }
 
+// 留言选择
+let selectedMessage = '';
+document.querySelectorAll('.message-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.message-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    selectedMessage = opt.dataset.message;
+  });
+});
+
 // 提交留言
 document.getElementById('submit-message-btn').addEventListener('click', async () => {
-  const message = document.getElementById('message-input').value.trim();
+  const message = selectedMessage;
   if (!message) {
-    showToast('请输入留言内容');
+    showToast('请选择一句留言');
     return;
   }
   
@@ -317,7 +353,8 @@ document.getElementById('submit-message-btn').addEventListener('click', async ()
       updateStarTooltip(selectedStarIndex, updated);
       
       showToast('留言已保存 ✨');
-      document.getElementById('message-input').value = '';
+      selectedMessage = '';
+      document.querySelectorAll('.message-option').forEach(o => o.classList.remove('selected'));
       
       setTimeout(closeMessageModal, 800);
     }
