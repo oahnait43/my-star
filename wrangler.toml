@@ -1,3 +1,7 @@
 name = "my-star"
 compatibility_date = "2024-01-01"
 pages_build_output_dir = "."
+
+[[kv_namespaces]]
+binding = "STARS_KV"
+id = "341ea6089b974f2faba14c7d910389db"
