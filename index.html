@@ -2,196 +2,173 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>你来过，这里就有光</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>星尘 · 你来过，这里就有光</title>
   <link rel="stylesheet" href="/style.css">
 </head>
-<body onload="initStars()">
+<body onload="init()">
 
   <div id="stars"></div>
-
-  <!-- 欢迎面板 -->
-  <div id="welcome-modal" class="modal">
-    <div class="modal-content welcome-content">
-      <h2>✨ 欢迎来到星空 ✨</h2>
-      <p>在这片星空留下属于你的光芒</p>
-      
-      <div class="customize-section">
-        <label>选择你的身份</label>
-        <div class="nickname-options">
-          <div class="nickname-option selected" data-nickname="匿名旅人">匿名旅人</div>
-          <div class="nickname-option" data-nickname="星空行者">星空行者</div>
-          <div class="nickname-option" data-nickname="追梦人">追梦人</div>
-          <div class="nickname-option" data-nickname="夜行者">夜行者</div>
-          <div class="nickname-option" data-nickname="自由灵魂">自由灵魂</div>
-          <div class="nickname-option" data-nickname="时光旅者">时光旅者</div>
-        </div>
-      </div>
-      
-      <div class="customize-section">
-        <label>选择星星颜色</label>
-        <div class="color-options">
-          <div class="color-option selected" data-color="white" style="background: #fff9e6; box-shadow: 0 0 10px #fff9;"></div>
-          <div class="color-option" data-color="gold" style="background: #ffd700; box-shadow: 0 0 10px #ffd700;"></div>
-          <div class="color-option" data-color="blue" style="background: #87ceeb; box-shadow: 0 0 10px #87ceeb;"></div>
-          <div class="color-option" data-color="pink" style="background: #ffb6c1; box-shadow: 0 0 10px #ffb6c1;"></div>
-          <div class="color-option" data-color="purple" style="background: #da70d6; box-shadow: 0 0 10px #da70d6;"></div>
-        </div>
-      </div>
-      
-      <div class="customize-section">
-        <label>选择星星符号</label>
-        <div class="symbol-options">
-          <div class="symbol-option selected" data-symbol="✦">✦</div>
-          <div class="symbol-option" data-symbol="✧">✧</div>
-          <div class="symbol-option" data-symbol="✶">✶</div>
-          <div class="symbol-option" data-symbol="✹">✹</div>
-          <div class="symbol-option" data-symbol="❋">❋</div>
-        </div>
-      </div>
-      
-      <button id="start-btn" class="btn-primary">点亮我的星星</button>
-    </div>
-  </div>
-
-  <!-- 留言弹窗 -->
-  <div id="message-modal" class="modal hidden">
-    <div class="modal-content message-content">
-      <button class="close-btn" onclick="closeMessageModal()">×</button>
-      <h3>🌟 星星留言</h3>
-      <div id="star-info" class="star-info"></div>
-      <div id="message-display" class="message-display"></div>
-      <label style="display:block;margin:1rem 0 0.5rem;font-size:0.75rem;color:rgba(180,160,220,0.9);text-transform:uppercase;letter-spacing:0.08em;">选择一句留言</label>
-      <div class="message-options">
-        <div class="message-option" data-message="我来过这片星空">我来过这片星空</div>
-        <div class="message-option" data-message="愿星光指引你">愿星光指引你</div>
-        <div class="message-option" data-message="此刻，我们同在">此刻，我们同在</div>
-        <div class="message-option" data-message="留下一点光">留下一点光</div>
-        <div class="message-option" data-message="你好，陌生人">你好，陌生人</div>
-        <div class="message-option" data-message="晚安，好梦">晚安，好梦</div>
-        <div class="message-option" data-message="星光不问赶路人">星光不问赶路人</div>
-        <div class="message-option" data-message="愿你所愿皆成真">愿你所愿皆成真</div>
-      </div>
-      <button id="submit-message-btn" class="btn-primary">留下留言</button>
-    </div>
-  </div>
-
-  <!-- 提示信息 -->
-  <div id="toast" class="toast"></div>
+  
+  <!-- 流星雨容器 -->
+  <div id="meteors"></div>
 
 <script>
-// 全局状态
-let userSettings = {
-  nickname: '',
-  color: 'white',
-  symbol: '✦'
+// IP信息获取
+async function getIPInfo() {
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    const data = await res.json();
+    return {
+      ip: data.ip,
+      city: data.city || '未知',
+      country: data.country_name || ''
+    };
+  } catch {
+    return { ip: 'unknown', city: '未知', country: '' };
+  }
+}
+
+// 哈希函数（IP转数值）
+function hashCode(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
+
+// 生成星星属性（完全由哈希决定）
+function generateStarProperties(ipHash) {
+  const colors = ['white', 'gold', 'blue', 'pink', 'purple'];
+  const symbols = ['✦', '✧', '✶', '✹', '❋'];
+  const sizes = [0.7, 0.85, 1.0, 1.2, 1.4];
+  const blinkSpeeds = ['slow', 'normal', 'fast'];
+  const blinkDurations = [6000, 4000, 2500];
+  const glowLevels = ['subtle', 'medium', 'strong'];
+  
+  const colorIndex = ipHash % colors.length;
+  const symbolIndex = (ipHash >> 2) % symbols.length;
+  const sizeIndex = (ipHash >> 4) % sizes.length;
+  const blinkIndex = (ipHash >> 6) % blinkSpeeds.length;
+  const glowIndex = (ipHash >> 8) % glowLevels.length;
+  
+  // 位置分布（防重叠）
+  const posX = (ipHash % 92) + 4;
+  const posY = (ipHash % 85) + 5;
+  
+  return {
+    color: colors[colorIndex],
+    symbol: symbols[symbolIndex],
+    size: sizes[sizeIndex],
+    blinkSpeed: blinkSpeeds[blinkIndex],
+    blinkDuration: blinkDurations[blinkIndex],
+    glow: glowLevels[glowIndex],
+    x: posX,
+    y: posY
+  };
+}
+
+// 根据时间段生成标签
+function getTimeLabel() {
+  const hour = new Date().getHours();
+  if (hour >= 0 && hour < 5) return '夜行人';
+  if (hour >= 5 && hour < 8) return '黎明访客';
+  if (hour >= 8 && hour < 12) return '晨光过客';
+  if (hour >= 12 && hour < 14) return '午间旅者';
+  if (hour >= 14 && hour < 18) return '午后漫游者';
+  if (hour >= 18 && hour < 21) return '夕照归人';
+  return '星夜来客';
+}
+
+// 颜色配置
+const colorMap = {
+  white: { color: '#fff9e6', glow: 'rgba(255, 249, 230, ' },
+  gold: { color: '#ffd700', glow: 'rgba(255, 215, 0, ' },
+  blue: { color: '#87ceeb', glow: 'rgba(135, 206, 235, ' },
+  pink: { color: '#ffb6c1', glow: 'rgba(255, 182, 193, ' },
+  purple: { color: '#da70d6', glow: 'rgba(218, 112, 214, ' }
 };
-let selectedStarIndex = -1;
+
+// 全局状态
+let myStarData = null;
 let starsData = [];
 
-// 颜色配置 - 使用 CSS 变量
-const colorMap = {
-  white: { color: '#fff9e6', var: 'var(--star-white)' },
-  gold: { color: '#ffd700', var: 'var(--star-gold)' },
-  blue: { color: '#87ceeb', var: 'var(--star-blue)' },
-  pink: { color: '#ffb6c1', var: 'var(--star-pink)' },
-  purple: { color: '#da70d6', var: 'var(--star-purple)' }
-};
-
-// 判断星星年龄（新/旧）
-function getStarAgeClass(timestamp) {
-  const now = new Date();
-  const starTime = new Date(timestamp.substring(0, 4) + '-' + 
-                           timestamp.substring(4, 6) + '-' + 
-                           timestamp.substring(6, 8));
-  const daysDiff = (now - starTime) / (1000 * 60 * 60 * 24);
-  return daysDiff < 7 ? 'new-star' : daysDiff > 30 ? 'old-star' : '';
-}
-
 // 初始化
-async function initStars() {
-  // 检查是否是首次访问
-  const hasVisited = localStorage.getItem('mystar_visited');
-  if (!hasVisited) {
-    showWelcomeModal();
-  } else {
-    // 恢复用户设置
-    const saved = localStorage.getItem('mystar_settings');
-    if (saved) {
-      userSettings = JSON.parse(saved);
-    }
-    createUserStar();
-  }
+async function init() {
+  // 获取IP信息
+  const ipInfo = await getIPInfo();
+  const ipHash = hashCode(ipInfo.ip);
   
-  // 加载所有星星
-  await loadAllStars();
-}
-
-// 显示欢迎面板
-function showWelcomeModal() {
-  const modal = document.getElementById('welcome-modal');
-  modal.classList.remove('hidden');
-  // 强制重绘以确保动画触发
-  void modal.offsetWidth;
-  modal.classList.add('active');
+  // 生成自己的星星属性
+  const props = generateStarProperties(ipHash);
+  const timeLabel = getTimeLabel();
   
-  // 颜色选择
-  document.querySelectorAll('.color-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
-      opt.classList.add('selected');
-      userSettings.color = opt.dataset.color;
-    });
-  });
+  // 保存到本地（用于回访识别）
+  const localKey = 'mystar_ip_hash';
+  const isReturning = localStorage.getItem(localKey) === ipHash.toString();
+  localStorage.setItem(localKey, ipHash.toString());
   
-  // 符号选择
-  document.querySelectorAll('.symbol-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      document.querySelectorAll('.symbol-option').forEach(o => o.classList.remove('selected'));
-      opt.classList.add('selected');
-      userSettings.symbol = opt.dataset.symbol;
-    });
-  });
+  myStarData = {
+    ip_hash: ipHash.toString().slice(-8),
+    city: ipInfo.city,
+    country: ipInfo.country,
+    color: props.color,
+    symbol: props.symbol,
+    size: props.size,
+    blinkSpeed: props.blinkSpeed,
+    blinkDuration: props.blinkDuration,
+    glow: props.glow,
+    x: props.x,
+    y: props.y,
+    label: timeLabel,
+    created_at: new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14),
+    is_returning: isReturning
+  };
   
-  // 昵称选择
-  document.querySelectorAll('.nickname-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      document.querySelectorAll('.nickname-option').forEach(o => o.classList.remove('selected'));
-      opt.classList.add('selected');
-      userSettings.nickname = opt.dataset.nickname;
-    });
-  });
-  
-  // 开始按钮
-  document.getElementById('start-btn').addEventListener('click', () => {
-    const selectedNickname = document.querySelector('.nickname-option.selected');
-    userSettings.nickname = selectedNickname ? selectedNickname.dataset.nickname : '匿名旅人';
-    
-    localStorage.setItem('mystar_visited', 'true');
-    localStorage.setItem('mystar_settings', JSON.stringify(userSettings));
-    
-    const modal = document.getElementById('welcome-modal');
-    modal.classList.remove('active');
+  // 显示流星雨开场（首次访问）
+  if (!isReturning) {
+    showMeteorShower();
     setTimeout(() => {
-      modal.classList.add('hidden');
-      createUserStar();
-    }, 400);
-  });
+      createMyStar();
+      loadAllStars();
+    }, 1500);
+  } else {
+    // 回访：闪烁欢迎
+    createMyStar();
+    setTimeout(() => {
+      highlightMyStar();
+      loadAllStars();
+    }, 500);
+  }
 }
 
-// 创建用户星星
-async function createUserStar() {
-  try {
-    const res = await fetch('/api/stars', { 
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userSettings)
-    });
-    const newStar = await res.json();
-    addStar(newStar, true, 0);
-  } catch(e) {
-    console.error('创建星星失败:', e);
+// 流星雨动画
+function showMeteorShower() {
+  const container = document.getElementById('meteors');
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => {
+      const meteor = document.createElement('div');
+      meteor.className = 'meteor';
+      meteor.style.left = Math.random() * 100 + '%';
+      meteor.style.animationDuration = (0.8 + Math.random() * 0.6) + 's';
+      meteor.style.animationDelay = Math.random() * 0.5 + 's';
+      container.appendChild(meteor);
+      setTimeout(() => meteor.remove(), 1500);
+    }, i * 80);
   }
+}
+
+// 创建我的星星
+function createMyStar() {
+  addStar(myStarData, true);
+}
+
+// 高亮我的星星（回访）
+function highlightMyStar() {
+  addStar(myStarData, true, true);
 }
 
 // 加载所有星星
@@ -200,14 +177,11 @@ async function loadAllStars() {
     const res = await fetch('/api/stars');
     starsData = await res.json();
     
-    // 反向遍历，让新星星在后面（上层）
     starsData.forEach((star, index) => {
-      // 跳过刚创建的那个（如果存在）
-      if (index > 0 || !localStorage.getItem('mystar_visited')) {
-        setTimeout(() => {
-          addStar(star, false, index);
-        }, Math.min(index * 80, 2000)); // 依次出现效果，最多延迟2秒
-      }
+      if (star.ip_hash === myStarData.ip_hash) return; // 跳过自己
+      setTimeout(() => {
+        addStar(star, false);
+      }, Math.min(index * 50, 1500));
     });
   } catch(e) {
     console.error('加载星星失败:', e);
@@ -215,192 +189,86 @@ async function loadAllStars() {
 }
 
 // 添加星星到页面
-function addStar(star, animate = false, index = 0) {
+function addStar(data, isMine = false, highlight = false) {
   const div = document.createElement('div');
+  const colorConfig = colorMap[data.color] || colorMap.white;
   
-  // 计算星星年龄类
-  const ageClass = getStarAgeClass(star.time);
-  div.className = 'star' + (animate ? ' animate' : ' enter-anim') + 
-                  (index > 0 ? ' other-star' : '') + 
-                  (ageClass ? ' ' + ageClass : '');
+  // 计算发光强度
+  let glowOuter, opacity;
+  if (data.glow === 'strong') {
+    glowOuter = '0 0 40px ' + colorConfig.glow + '0.5), 0 0 80px ' + colorConfig.glow + '0.3)';
+    opacity = 1;
+  } else if (data.glow === 'subtle') {
+    glowOuter = '0 0 12px ' + colorConfig.glow + '0.3), 0 0 24px ' + colorConfig.glow + '0.15)';
+    opacity = 0.85;
+  } else {
+    glowOuter = '0 0 24px ' + colorConfig.glow + '0.4), 0 0 48px ' + colorConfig.glow + '0.2)';
+    opacity = 0.92;
+  }
   
-  const left = getRandomPos('left');
-  const top = getRandomPos('top');
-  div.style.left = left;
-  div.style.top = top;
-  div.style.fontSize = (0.8 + Math.random() * 1.2) + 'rem';
-  
-  // 应用颜色 - 使用 CSS 变量
-  const colorConfig = colorMap[star.color] || colorMap.white;
+  div.className = 'star' + (isMine ? ' mine' : '') + (highlight ? ' highlight' : '');
+  div.style.left = data.x + '%';
+  div.style.top = data.y + '%';
+  div.style.fontSize = data.size + 'rem';
   div.style.color = colorConfig.color;
-  
-  // 存储 CSS 变量供涟漪效果使用
   div.style.setProperty('--star-color', colorConfig.color);
+  div.style.setProperty('--glow-outer', glowOuter);
+  div.style.opacity = opacity;
+  div.style.animationDuration = data.blinkDuration + 'ms';
   
-  // 存储星星索引
-  div.dataset.index = index;
+  div.innerHTML = `<span class="star-symbol">${data.symbol}</span>`;
   
-  const displayName = star.nickname || '匿名旅人';
-  const message = star.message ? `<div class="message">${escapeHtml(star.message)}</div>` : '';
-  
-  div.innerHTML = `
-    <span class="star-symbol">${star.symbol || '✦'}</span>
-    <span class="info">
-      <strong>${escapeHtml(displayName)}</strong>
-      <span class="meta">${star.time} · ${star.location}</span>
-      ${message}
-    </span>
-  `;
-  
-  // 点击事件 - 添加涟漪效果
+  // 点击事件
   div.addEventListener('click', (e) => {
     e.stopPropagation();
-    div.classList.add('clicked');
-    setTimeout(() => div.classList.remove('clicked'), 600);
-    openMessageModal(index, star);
+    showStarDetail(data, isMine);
   });
   
   document.getElementById('stars').appendChild(div);
 }
 
-// 获取随机位置
-function getRandomPos(axis) {
-  const max = axis === 'left' ? 95 : 90;
-  let pos = Math.random() * max;
-  // 避免太靠近边缘
-  pos = Math.max(2, Math.min(pos, max - 2));
-  return pos + (axis === 'left' ? 'vw' : 'vh');
-}
-
-// 打开留言弹窗
-function openMessageModal(index, star) {
-  selectedStarIndex = index;
-  const modal = document.getElementById('message-modal');
-  const infoDiv = document.getElementById('star-info');
-  const messageDisplay = document.getElementById('message-display');
-  const messageInput = document.getElementById('message-input');
-  
-  const displayName = star.nickname || '匿名旅人';
-  const colorConfig = colorMap[star.color] || colorMap.white;
-  
-  infoDiv.innerHTML = `
-    <span class="star-symbol-large" style="color: ${colorConfig.color}; text-shadow: 0 0 20px ${colorConfig.color};">${star.symbol || '✦'}</span>
-    <div class="owner-info">
-      <strong>${escapeHtml(displayName)}</strong>
-      <span>${star.time} · ${star.location}</span>
+// 显示星星详情
+function showStarDetail(data, isMine) {
+  const div = document.createElement('div');
+  div.className = 'detail-popup';
+  div.innerHTML = `
+    <div class="detail-content">
+      <span class="detail-symbol" style="color: ${colorMap[data.color].color}">${data.symbol}</span>
+      <div class="detail-info">
+        <strong>${data.label}</strong>
+        <span>${data.city} · ${formatTime(data.created_at)}</span>
+        ${!isMine ? '<span class="detail-hint">从远方闪烁的星光</span>' : '<span class="detail-hint">这是你的星星</span>'}
+      </div>
     </div>
   `;
   
-  if (star.message) {
-    messageDisplay.innerHTML = `<div class="existing-message">${escapeHtml(star.message)}</div>`;
-  } else {
-    messageDisplay.innerHTML = '<div class="no-message">还没有留言</div>';
-  }
+  div.style.left = (data.x > 50 ? data.x - 15 : data.x + 3) + '%';
+  div.style.top = (data.y > 50 ? data.y - 12 : data.y + 2) + '%';
   
-  messageInput.value = '';
-  modal.classList.remove('hidden');
-  // 强制重绘以确保动画触发
-  void modal.offsetWidth;
-  modal.classList.add('active');
-}
-
-// 关闭留言弹窗
-function closeMessageModal() {
-  const modal = document.getElementById('message-modal');
-  modal.classList.remove('active');
+  document.body.appendChild(div);
+  
   setTimeout(() => {
-    modal.classList.add('hidden');
-    selectedStarIndex = -1;
-  }, 400);
-}
-
-// 留言选择
-let selectedMessage = '';
-document.querySelectorAll('.message-option').forEach(opt => {
-  opt.addEventListener('click', () => {
-    document.querySelectorAll('.message-option').forEach(o => o.classList.remove('selected'));
-    opt.classList.add('selected');
-    selectedMessage = opt.dataset.message;
-  });
-});
-
-// 提交留言
-document.getElementById('submit-message-btn').addEventListener('click', async () => {
-  const message = selectedMessage;
-  if (!message) {
-    showToast('请选择一句留言');
-    return;
-  }
+    div.classList.add('show');
+  }, 10);
   
-  if (selectedStarIndex < 0) return;
-  
-  try {
-    const res = await fetch('/api/stars', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ index: selectedStarIndex, message })
+  // 点击关闭
+  setTimeout(() => {
+    document.addEventListener('click', function handler() {
+      div.remove();
+      document.removeEventListener('click', handler);
     });
-    
-    if (res.ok) {
-      const updated = await res.json();
-      starsData[selectedStarIndex] = updated;
-      
-      // 更新显示
-      document.getElementById('message-display').innerHTML = 
-        `<div class="existing-message">${escapeHtml(message)}</div>`;
-      
-      // 更新 tooltip
-      updateStarTooltip(selectedStarIndex, updated);
-      
-      showToast('留言已保存 ✨');
-      selectedMessage = '';
-      document.querySelectorAll('.message-option').forEach(o => o.classList.remove('selected'));
-      
-      setTimeout(closeMessageModal, 800);
-    }
-  } catch(e) {
-    showToast('保存失败，请重试');
-  }
-});
-
-// 更新星星 tooltip
-function updateStarTooltip(index, star) {
-  const stars = document.querySelectorAll('.star');
-  if (stars[index]) {
-    const displayName = star.nickname || '匿名旅人';
-    const message = star.message ? `<div class="message">${escapeHtml(star.message)}</div>` : '';
-    const info = stars[index].querySelector('.info');
-    if (info) {
-      info.innerHTML = `
-        <strong>${escapeHtml(displayName)}</strong>
-        <span class="meta">${star.time} · ${star.location}</span>
-        ${message}
-      `;
-    }
-  }
+  }, 100);
 }
 
-// HTML 转义
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+// 格式化时间
+function formatTime(t) {
+  if (!t || t.length < 12) return '未知时间';
+  const month = t.slice(4, 6);
+  const day = t.slice(6, 8);
+  const hour = t.slice(8, 10);
+  const min = t.slice(10, 12);
+  return `${month}月${day}日 ${hour}:${min}`;
 }
-
-// 显示提示
-function showToast(msg) {
-  const toast = document.getElementById('toast');
-  toast.textContent = msg;
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 2500);
-}
-
-// 点击空白处关闭弹窗
-document.addEventListener('click', (e) => {
-  if (e.target.classList.contains('modal') && e.target.id === 'message-modal') {
-    closeMessageModal();
-  }
-});
 </script>
 </body>
 </html>
