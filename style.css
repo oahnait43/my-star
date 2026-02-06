@@ -4,7 +4,6 @@
   --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
   
-  /* 颜色变量 */
   --star-white: #fff9e6;
   --star-gold: #ffd700;
   --star-blue: #87ceeb;
@@ -18,21 +17,19 @@ body {
   font-family: var(--font-stack);
   height: 100dvh;
   background: 
-    radial-gradient(ellipse at 20% 30%, rgba(138, 43, 226, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(30, 144, 255, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(255, 215, 0, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 30%, rgba(138, 43, 226, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 70%, rgba(30, 144, 255, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255, 215, 0, 0.02) 0%, transparent 50%),
     radial-gradient(ellipse at bottom, #0d001a 0%, #000 100%);
   overflow: hidden;
 }
 
-/* 星星容器 */
 #stars {
   position: fixed;
   inset: 0;
   pointer-events: none;
 }
 
-/* 流星容器 */
 #meteors {
   position: fixed;
   inset: 0;
@@ -40,47 +37,43 @@ body {
   overflow: hidden;
 }
 
-/* 流星样式 */
 .meteor {
   position: absolute;
   top: -10px;
-  width: 2px;
-  height: 2px;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.8), transparent);
-  border-radius: 50%;
-  animation: meteor-fall linear forwards;
+  height: 1px;
+  background: linear-gradient(to right, rgba(255,255,255,0.9), transparent);
+  transform-origin: left center;
+  animation: meteor-fly linear forwards;
 }
 
 .meteor::after {
   content: '';
   position: absolute;
   top: 50%;
+  right: 0;
   transform: translateY(-50%);
-  right: 1px;
-  width: 60px;
-  height: 2px;
-  background: linear-gradient(to left, rgba(255,255,255,0.6), transparent);
-  transform-origin: right center;
+  width: 40px;
+  height: 100%;
+  background: linear-gradient(to left, rgba(255,255,255,0.4), transparent);
 }
 
-@keyframes meteor-fall {
+@keyframes meteor-fly {
   0% {
-    transform: translateY(0) rotate(15deg);
+    transform: translateX(0) translateY(0);
     opacity: 1;
   }
   100% {
-    transform: translateY(100vh) rotate(15deg);
+    transform: translateX(100vw) translateY(100vh);
     opacity: 0;
   }
 }
 
-/* 星星基础样式 */
 .star {
   position: absolute;
   color: var(--star-white);
   text-shadow: 
+    0 0 2px currentColor,
     0 0 4px currentColor,
-    0 0 8px currentColor,
     var(--glow-outer);
   animation: breathe ease-in-out infinite;
   user-select: none;
@@ -88,7 +81,6 @@ body {
   cursor: pointer;
   will-change: transform, opacity;
   transition: transform 0.3s var(--smooth-ease);
-  opacity: 0;
   animation-fill-mode: forwards;
 }
 
@@ -97,23 +89,22 @@ body {
 }
 
 .star.highlight {
-  animation: breathe-fast 0.8s ease-in-out 3 !important;
+  animation: breathe-fast 0.6s ease-in-out 3 !important;
 }
 
 @keyframes breathe {
   0%, 100% { opacity: inherit; transform: scale(1); }
-  50% { opacity: calc(inherit + 0.1); transform: scale(1.05); }
+  50% { opacity: calc(inherit + 0.15); transform: scale(1.03); }
 }
 
 @keyframes breathe-fast {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(0.9); }
+  50% { opacity: 0.6; transform: scale(0.95); }
 }
 
-/* 星星符号 */
 .star-symbol {
   display: block;
-  animation: rotate 20s linear infinite;
+  animation: rotate 30s linear infinite;
 }
 
 @keyframes rotate {
@@ -121,12 +112,11 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* 详情弹窗 */
 .detail-popup {
   position: absolute;
   z-index: 1000;
   opacity: 0;
-  transform: scale(0.9);
+  transform: scale(0.95);
   transition: opacity 0.3s var(--smooth-ease), transform 0.3s var(--smooth-ease);
   pointer-events: none;
 }
@@ -139,58 +129,57 @@ body {
 .detail-content {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  padding: 1rem 1.2rem;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  gap: 0.6rem;
+  padding: 0.7rem 1rem;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
 .detail-symbol {
-  font-size: 2rem;
-  text-shadow: 0 0 20px currentColor;
+  font-size: 1.4rem;
+  text-shadow: 0 0 15px currentColor;
 }
 
 .detail-info strong {
   display: block;
   font-weight: 500;
   color: #fff;
-  font-size: 0.95rem;
-  margin-bottom: 0.2rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.15rem;
 }
 
 .detail-info span {
   font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: rgba(180, 160, 220, 0.8);
+  font-size: 0.65rem;
+  color: rgba(180, 160, 220, 0.75);
 }
 
 .detail-hint {
   display: block;
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 0.3rem;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.4);
+  margin-top: 0.2rem;
   font-style: italic;
 }
 
-/* 响应式 */
 @media (max-width: 480px) {
   .detail-content {
-    padding: 0.8rem 1rem;
+    padding: 0.5rem 0.8rem;
   }
   
   .detail-symbol {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
   }
   
   .detail-info strong {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
   
   .detail-info span,
   .detail-hint {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }
 }

@@ -10,7 +10,7 @@
 
   <div id="stars"></div>
   
-  <!-- 流星雨容器 -->
+  <!-- 流星容器 -->
   <div id="meteors"></div>
 
 <script>
@@ -44,7 +44,7 @@ function hashCode(str) {
 function generateStarProperties(ipHash) {
   const colors = ['white', 'gold', 'blue', 'pink', 'purple'];
   const symbols = ['✦', '✧', '✶', '✹', '❋'];
-  const sizes = [0.7, 0.85, 1.0, 1.2, 1.4];
+  const sizes = [0.45, 0.55, 0.65, 0.75, 0.85];
   const blinkSpeeds = ['slow', 'normal', 'fast'];
   const blinkDurations = [6000, 4000, 2500];
   const glowLevels = ['subtle', 'medium', 'strong'];
@@ -56,8 +56,8 @@ function generateStarProperties(ipHash) {
   const glowIndex = (ipHash >> 8) % glowLevels.length;
   
   // 位置分布（防重叠）
-  const posX = (ipHash % 92) + 4;
-  const posY = (ipHash % 85) + 5;
+  const posX = (ipHash % 94) + 3;
+  const posY = (ipHash % 90) + 5;
   
   return {
     color: colors[colorIndex],
@@ -128,15 +128,14 @@ async function init() {
     is_returning: isReturning
   };
   
-  // 显示流星雨开场（首次访问）
+  // 创建星星并显示流星引导
   if (!isReturning) {
-    showMeteorShower();
+    createMyStar();
     setTimeout(() => {
-      createMyStar();
+      showMeteor(myStarData.x, myStarData.y);
       loadAllStars();
-    }, 1500);
+    }, 300);
   } else {
-    // 回访：闪烁欢迎
     createMyStar();
     setTimeout(() => {
       highlightMyStar();
@@ -145,20 +144,30 @@ async function init() {
   }
 }
 
-// 流星雨动画
-function showMeteorShower() {
+// 单颗流星动画（引导视线到我的星星）
+function showMeteor(targetX, targetY) {
   const container = document.getElementById('meteors');
-  for (let i = 0; i < 20; i++) {
-    setTimeout(() => {
-      const meteor = document.createElement('div');
-      meteor.className = 'meteor';
-      meteor.style.left = Math.random() * 100 + '%';
-      meteor.style.animationDuration = (0.8 + Math.random() * 0.6) + 's';
-      meteor.style.animationDelay = Math.random() * 0.5 + 's';
-      container.appendChild(meteor);
-      setTimeout(() => meteor.remove(), 1500);
-    }, i * 80);
-  }
+  const meteor = document.createElement('div');
+  meteor.className = 'meteor';
+  
+  // 从左上角划过，目标是我的星星位置
+  const startX = -20;
+  const startY = -20;
+  const deltaX = targetX - startX;
+  const deltaY = targetY - startY;
+  const angle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  const duration = Math.max(600, distance * 6);
+  
+  meteor.style.left = startX + '%';
+  meteor.style.top = startY + '%';
+  meteor.style.width = distance * 0.7 + '%';
+  meteor.style.transform = `rotate(${angle}deg)`;
+  meteor.style.animationDuration = duration + 'ms';
+  
+  container.appendChild(meteor);
+  
+  setTimeout(() => meteor.remove(), duration);
 }
 
 // 创建我的星星
@@ -178,10 +187,10 @@ async function loadAllStars() {
     starsData = await res.json();
     
     starsData.forEach((star, index) => {
-      if (star.ip_hash === myStarData.ip_hash) return; // 跳过自己
+      if (star.ip_hash === myStarData.ip_hash) return;
       setTimeout(() => {
         addStar(star, false);
-      }, Math.min(index * 50, 1500));
+      }, Math.min(index * 30, 1000));
     });
   } catch(e) {
     console.error('加载星星失败:', e);
@@ -196,14 +205,14 @@ function addStar(data, isMine = false, highlight = false) {
   // 计算发光强度
   let glowOuter, opacity;
   if (data.glow === 'strong') {
-    glowOuter = '0 0 40px ' + colorConfig.glow + '0.5), 0 0 80px ' + colorConfig.glow + '0.3)';
-    opacity = 1;
+    glowOuter = '0 0 8px ' + colorConfig.glow + '0.6), 0 0 16px ' + colorConfig.glow + '0.3)';
+    opacity = 0.9;
   } else if (data.glow === 'subtle') {
-    glowOuter = '0 0 12px ' + colorConfig.glow + '0.3), 0 0 24px ' + colorConfig.glow + '0.15)';
-    opacity = 0.85;
+    glowOuter = '0 0 4px ' + colorConfig.glow + '0.3), 0 0 8px ' + colorConfig.glow + '0.15)';
+    opacity = 0.7;
   } else {
-    glowOuter = '0 0 24px ' + colorConfig.glow + '0.4), 0 0 48px ' + colorConfig.glow + '0.2)';
-    opacity = 0.92;
+    glowOuter = '0 0 6px ' + colorConfig.glow + '0.4), 0 0 12px ' + colorConfig.glow + '0.2)';
+    opacity = 0.8;
   }
   
   div.className = 'star' + (isMine ? ' mine' : '') + (highlight ? ' highlight' : '');
@@ -213,18 +222,23 @@ function addStar(data, isMine = false, highlight = false) {
   div.style.color = colorConfig.color;
   div.style.setProperty('--star-color', colorConfig.color);
   div.style.setProperty('--glow-outer', glowOuter);
-  div.style.opacity = opacity;
+  div.style.opacity = 0;
   div.style.animationDuration = data.blinkDuration + 'ms';
   
   div.innerHTML = `<span class="star-symbol">${data.symbol}</span>`;
   
-  // 点击事件
   div.addEventListener('click', (e) => {
     e.stopPropagation();
     showStarDetail(data, isMine);
   });
   
   document.getElementById('stars').appendChild(div);
+  
+  // 渐显
+  requestAnimationFrame(() => {
+    div.style.transition = 'opacity 0.8s ease-out';
+    div.style.opacity = opacity;
+  });
 }
 
 // 显示星星详情
@@ -251,7 +265,6 @@ function showStarDetail(data, isMine) {
     div.classList.add('show');
   }, 10);
   
-  // 点击关闭
   setTimeout(() => {
     document.addEventListener('click', function handler() {
       div.remove();
