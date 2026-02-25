@@ -1,7 +1,7 @@
 {
   "name": "my-star",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.1.0",
+  "description": "Cloudflare Pages 星空访客互动站点",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
